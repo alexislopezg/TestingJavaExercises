@@ -11,24 +11,23 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import page.DevToHomePage;
 
+import java.util.List;
+
 import static org.testng.Assert.assertTrue;
 
 public class DevToTests {
     private WebDriver driver;
     private DevToHomePage homePage;
     private WebDriverWait wait;
-    private ChromeOptions options;
 
     @BeforeMethod
     public void setUp() {
         System.setProperty("webdriver.chrome.driver", "c:/Users/Alex/IdeaProjects/seleniumjava/driver/chromedriver.exe");
-        options = new ChromeOptions();
-        options.addArguments("--start-fullscreen");
-        driver = new ChromeDriver(options);
+        driver = new ChromeDriver();
         driver.get("https://dev.to");
         wait = new WebDriverWait(driver, 10);
         homePage = new DevToHomePage(driver);
-
+        driver.manage().window().maximize();
     }
 
     @Test
@@ -46,15 +45,32 @@ public class DevToTests {
     }
 
     @Test
-    public void searchForFacebookIcon_TheUserCanFindItAndClickIt() throws InterruptedException {
-        WebElement facebookIcon = driver.findElement(By.xpath("//*[@id=\"sidebar-wrapper-left\"]/div[2]/div[3]/div[1]/a[4]"));
-        facebookIcon.click();
-        String parentHandle = driver.getWindowHandle(); // get the current window handle
-        System.out.println(parentHandle);
-        Thread.sleep(5);
+    public void searchKeyLinks_LinksRedirectToCorrectSite() {
+       List<WebElement> keyLinks = driver.findElements(By.xpath("//header[contains(text(), 'KEY LINKS')]/..//a"));
+        for (WebElement link: keyLinks) {
+            link.click();
+            String newTabUrl;
 
+            if (driver.getWindowHandles().size() > 1) {
+                switchToAnotherTab();
+                newTabUrl = driver.getCurrentUrl();
+                assertTrue(newTabUrl.equals(driver.getCurrentUrl()));
+                driver.close();
+                switchToAnotherTab();
+            }
+            else{
+                newTabUrl = driver.getCurrentUrl();
+                assertTrue(newTabUrl.equals(driver.getCurrentUrl()));
+                driver.navigate().back();
+            }
+        }
 
     }
+    private void switchToAnotherTab() {
+        for (String handle : driver.getWindowHandles())
+            driver.switchTo().window(handle);
+    }
+
 
     @AfterMethod
     public void teardown() {
