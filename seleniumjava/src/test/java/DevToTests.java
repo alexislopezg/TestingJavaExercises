@@ -52,10 +52,9 @@ public class DevToTests {
         final List<String> devToLinks = new ArrayList<String>(Arrays.asList(
                 "https://twitter.com/thepracticaldev",
                 "https://github.com/thepracticaldev",
-                "https://instagram.com/thepracticaldev/",
-                "https://facebook.com/thepracticaldev",
-                "https://twitch.tv/thepracticaldev"));
-        String newTabUrl;
+                "https://www.instagram.com/thepracticaldev/",
+                "https://www.facebook.com/thepracticaldev",
+                "https://www.twitch.tv/thepracticaldev"));
 
         for (final WebElement link: keyLinks) {
             link.click();
@@ -65,12 +64,24 @@ public class DevToTests {
             switchToAnotherTab();
         }
 
-
     }
+
     private void switchToAnotherTab() {
         for (final String handle : driver.getWindowHandles())
             driver.switchTo().window(handle);
     }
+
+    @Test
+    public void searchForProfile_NameIsEqualToSearchQuery() {
+        homePage.searchFor("ben halpern");
+        wait.until(ExpectedConditions.urlToBe("https://dev.to/search?q=ben%20halpern"));
+        WebElement benProfile = driver.findElement(By.xpath("//*[@id=\"substories\"]/div[1]/div[1]/a"));
+        benProfile.click();
+        wait.until(ExpectedConditions.urlToBe("https://dev.to/ben"));
+        WebElement profileName = driver.findElement(By.xpath("//*/div[1]/div/div[3]/h1/span[1]"));
+        assertEquals(profileName.getText().toLowerCase(), "ben halpern");
+    }
+
 
 
 
