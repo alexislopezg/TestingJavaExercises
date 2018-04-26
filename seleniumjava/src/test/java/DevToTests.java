@@ -2,8 +2,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeOptions;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterMethod;
@@ -11,8 +9,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import page.DevToHomePage;
 
+import javax.xml.ws.WebEndpoint;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class DevToTests {
@@ -46,30 +48,30 @@ public class DevToTests {
 
     @Test
     public void searchKeyLinks_LinksRedirectToCorrectSite() {
-       List<WebElement> keyLinks = driver.findElements(By.xpath("//header[contains(text(), 'KEY LINKS')]/..//a"));
-        for (WebElement link: keyLinks) {
-            link.click();
-            String newTabUrl;
+        final List<WebElement> keyLinks = driver.findElements(By.xpath("(//header[contains(text(), 'KEY LINKS')]/../div)[1]/a"));
+        final List<String> devToLinks = new ArrayList<String>(Arrays.asList(
+                "https://twitter.com/thepracticaldev",
+                "https://github.com/thepracticaldev",
+                "https://instagram.com/thepracticaldev/",
+                "https://facebook.com/thepracticaldev",
+                "https://twitch.tv/thepracticaldev"));
+        String newTabUrl;
 
-            if (driver.getWindowHandles().size() > 1) {
-                switchToAnotherTab();
-                newTabUrl = driver.getCurrentUrl();
-                assertTrue(newTabUrl.equals(driver.getCurrentUrl()));
-                driver.close();
-                switchToAnotherTab();
-            }
-            else{
-                newTabUrl = driver.getCurrentUrl();
-                assertTrue(newTabUrl.equals(driver.getCurrentUrl()));
-                driver.navigate().back();
-            }
+        for (final WebElement link: keyLinks) {
+            link.click();
+            switchToAnotherTab();
+            assertTrue(devToLinks.contains(driver.getCurrentUrl()));
+            driver.close();
+            switchToAnotherTab();
         }
+
 
     }
     private void switchToAnotherTab() {
-        for (String handle : driver.getWindowHandles())
+        for (final String handle : driver.getWindowHandles())
             driver.switchTo().window(handle);
     }
+
 
 
     @AfterMethod
