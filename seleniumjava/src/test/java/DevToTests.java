@@ -1,89 +1,79 @@
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import page.DevToHomePage;
+import page.HomePage;
+import page.PostPage;
+import page.ProfilePage;
+import page.SearchPage;
+import utils.WebDriverUtils;
 
-import javax.xml.ws.WebEndpoint;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 public class DevToTests {
     private WebDriver driver;
-    private DevToHomePage homePage;
-    private WebDriverWait wait;
+    private HomePage homePage;
+    private SearchPage searchPage;
+    private PostPage postPage;
+    private ProfilePage profilePage;
 
     @BeforeMethod
     public void setUp() {
-        System.setProperty("webdriver.chrome.driver", "c:/Users/Alex/IdeaProjects/seleniumjava/driver/chromedriver.exe");
         driver = new ChromeDriver();
-        driver.get("https://dev.to");
-        wait = new WebDriverWait(driver, 10);
-        homePage = new DevToHomePage(driver);
-        driver.manage().window().maximize();
+        homePage = new HomePage(driver);
+        searchPage = new SearchPage(driver);
+        postPage = new PostPage(driver);
+        profilePage = new ProfilePage(driver);
+
+        homePage.open();
     }
 
     @Test
-    public void goToWebsite_CheckUrl() throws InterruptedException {
-        wait.until(ExpectedConditions.urlContains("https://dev.to/"));
-        assertTrue(driver.getCurrentUrl().equals("https://dev.to/"));
+    public void canUserVisitHomePage() {
+        assertTrue(homePage.isVisible());
     }
 
     @Test
-    public void searchForVsCodeExtensionPost_TheUserCanFindItAndReadIt() throws InterruptedException {
+    public void canUserSearchForPosts() {
         homePage.searchFor("must have extensions");
-        wait.until(ExpectedConditions.urlToBe("https://dev.to/search?q=must%20have%20extensions"));
-        WebElement post = driver.findElement(By.xpath("//h3[text() = 'Must have extensions for VS Code (according to me)']"));
-        post.click();
+        searchPage.selectFirstResult();
+
+        assertTrue(postPage.isReadable());
     }
 
     @Test
-    public void searchKeyLinks_LinksRedirectToCorrectSite() {
-        final List<WebElement> keyLinks = driver.findElements(By.xpath("(//header[contains(text(), 'KEY LINKS')]/../div)[1]/a"));
-        final List<String> devToLinks = new ArrayList<String>(Arrays.asList(
+    public void canUserVisitSocialLinks() {
+        final List<String> expectedLinks = new ArrayList<>(Arrays.asList(
                 "https://twitter.com/thepracticaldev",
                 "https://github.com/thepracticaldev",
                 "https://www.instagram.com/thepracticaldev/",
                 "https://www.facebook.com/thepracticaldev",
-                "https://www.twitch.tv/thepracticaldev"));
+                "https://www.twitch.tv/thepracticaldev"
+        )
+        );
 
-        for (final WebElement link: keyLinks) {
+        for (final WebElement link : homePage.getKeyLinks()) {
             link.click();
-            switchToAnotherTab();
-            assertTrue(devToLinks.contains(driver.getCurrentUrl()));
+            WebDriverUtils.switchToNextTab(driver);
+            assertTrue(expectedLinks.contains(driver.getCurrentUrl()));
             driver.close();
-            switchToAnotherTab();
+            WebDriverUtils.switchToNextTab(driver);
         }
-
-    }
-
-    private void switchToAnotherTab() {
-        for (final String handle : driver.getWindowHandles())
-            driver.switchTo().window(handle);
     }
 
     @Test
-    public void searchForProfile_NameIsEqualToSearchQuery() {
+    public void canCheckAnotherUserProfile() {
         homePage.searchFor("ben halpern");
-        wait.until(ExpectedConditions.urlToBe("https://dev.to/search?q=ben%20halpern"));
-        WebElement benProfile = driver.findElement(By.xpath("//*[@id=\"substories\"]/div[1]/div[1]/a"));
-        benProfile.click();
-        wait.until(ExpectedConditions.urlToBe("https://dev.to/ben"));
-        WebElement profileName = driver.findElement(By.xpath("//*/div[1]/div/div[3]/h1/span[1]"));
-        assertEquals(profileName.getText().toLowerCase(), "ben halpern");
+        searchPage.selectFirstResult();
+
+        assertTrue(profilePage.isVisible());
     }
-
-
-
 
     @AfterMethod
     public void teardown() {
